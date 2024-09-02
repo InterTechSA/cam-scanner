@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Capture and Store</title>
+  <style>
+    #camera {
+      width: 320px;
+      height: 240px;
+      background-color: #ccc;
+    }
+    #outputImage {
+      display: none;
+      width: 320px;
+      height: 240px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Take a Photo</h1>
+  <video id="camera" autoplay></video>
+  <button id="captureBtn">Capture Photo</button>
+  <canvas id="canvas" style="display: none;"></canvas>
+  <img id="outputImage" alt="Captured Image" />
+
+  <script>
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('canvas');
+    const outputImage = document.getElementById('outputImage');
+    const captureBtn = document.getElementById('captureBtn');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        console.error("Error accessing camera: ", err);
+      });
+
+    captureBtn.addEventListener('click', () => {
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const dataURL = canvas.toDataURL('image/png');
+      const binaryString = atob(dataURL.split(',')[1]);
+
+      localStorage.setItem('photoBinary', binaryString);
+
+      outputImage.src = dataURL;
+      outputImage.style.display = 'block';
+      
+      video.srcObject.getTracks().forEach(track => track.stop());
+    });
+  </script>
+</body>
+</html>
