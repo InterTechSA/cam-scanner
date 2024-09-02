@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Camera Capture</title>
+  <title>Camera Capture and Save</title>
   <style>
     video, img {
       width: 100%;
@@ -12,7 +12,7 @@
   </style>
 </head>
 <body>
-  <h1>Camera Capture</h1>
+  <h1>Camera Capture and Save</h1>
   
   <video id="camera" autoplay playsinline></video>
   <br>
@@ -20,7 +20,7 @@
   <canvas id="snapshot" style="display:none;"></canvas>
   
   <script>
-    // Function to start the camera
+
     function startCamera() {
       const constraints = {
         video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
@@ -43,11 +43,13 @@
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
           
           canvas.toBlob(blob => {
-            const url = URL.createObjectURL(blob);
-            const img = document.createElement('img');
-            img.src = url;
-            document.body.appendChild(img);
-          });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'captured-image.jpg';
+            link.click();
+
+            URL.revokeObjectURL(link.href);
+          }, 'image/jpeg');
         });
       })
       .catch(error => {
@@ -55,7 +57,6 @@
       });
     }
 
-    // Check if the browser supports getUserMedia and HTTPS
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       startCamera();
     } else {
