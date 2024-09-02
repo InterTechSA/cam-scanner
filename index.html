@@ -31,7 +31,8 @@
     const outputImage = document.getElementById('outputImage');
     const captureBtn = document.getElementById('captureBtn');
 
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { exact: 'environment' } }})
       .then(stream => {
         video.srcObject = stream;
       })
