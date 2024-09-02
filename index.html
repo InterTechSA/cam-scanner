@@ -3,59 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photo Capture and Store</title>
-  <style>
-    #camera {
-      width: 320px;
-      height: 240px;
-      background-color: #ccc;
-    }
-    #outputImage {
-      display: none;
-      width: 320px;
-      height: 240px;
-      margin-top: 10px;
-    }
-  </style>
+  <title>Camera Capture</title>
 </head>
 <body>
-  <h1>Take a Photo</h1>
-  <video id="camera" autoplay></video>
-  <button id="captureBtn">Capture Photo</button>
-  <canvas id="canvas" style="display: none;"></canvas>
-  <img id="outputImage" alt="Captured Image" />
-
+  <h1>Camera Capture</h1>
+  
+  <video id="camera" autoplay style="width: 100%; max-width: 500px;"></video>
+  <br>
+  <button id="capture">Capture</button>
+  <canvas id="snapshot" style="display:none;"></canvas>
+  
   <script>
-    const video = document.getElementById('camera');
-    const canvas = document.getElementById('canvas');
-    const outputImage = document.getElementById('outputImage');
-    const captureBtn = document.getElementById('captureBtn');
-
+    // Request access to the camera
     navigator.mediaDevices.getUserMedia({
-    video: { facingMode: { exact: 'environment' } }})
-      .then(stream => {
-        video.srcObject = stream;
-      })
-      .catch(err => {
-        console.error("Error accessing camera: ", err);
-      });
+      video: { facingMode: 'environment' }  // Request back camera
+    })
+    .then(stream => {
+      const video = document.getElementById('camera');
+      video.srcObject = stream;  // Set the video stream as source for the video element
+      video.play();  // Start playing the video
 
-    captureBtn.addEventListener('click', () => {
+      // Check if the back camera is available
+      if (stream.getVideoTracks()[0].getSettings().facingMode !== 'environment') {
+        console.log('Back camera not available. Using front camera instead.');
+      }
+
+      const captureButton = document.getElementById('capture');
+      const canvas = document.getElementById('snapshot');
       const context = canvas.getContext('2d');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
 
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const dataURL = canvas.toDataURL('image/png');
-      const binaryString = atob(dataURL.split(',')[1]);
-
-      localStorage.setItem('photoBinary', binaryString);
-
-      outputImage.src = dataURL;
-      outputImage.style.display = 'block';
-      
-      video.srcObject.getTracks().forEach(track => track.stop());
+      // Capture image on button click
+      captureButton.addEventListener('click', () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw the current video frame on the canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert the canvas content to a Blob (binary data)
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          const img = document.createElement('img');
+          img.src = url;
+          img.style.maxWidth = '100%';
+          document.body.appendChild(img);  // Append the captured image to the DOM
+        });
+      });
+    })
+    .catch(error => {
+      console.error('Error accessing camera:', error);
     });
   </script>
 </body>
